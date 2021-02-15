@@ -4,7 +4,7 @@
   "description": "First chapter of software refactoring stream",
   "main": "index.js",
   "scripts": {
-    "start": "concurrently \"npx tsc -w\" \"lite-server --baseDir=\"./public\"\"",
+    "start": "concurrently \"npx tsc -w\" \"lite-server\"",
 	"__start": "concurrently \"npx tsc -w\""
   },
   "author": "PaquitoSoft",

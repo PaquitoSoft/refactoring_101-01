@@ -6,12 +6,26 @@
 	<title>Refactoring 101 - 01</title>
 
 	<script src="./dist/app.js" defer></script>
+	<style>
+		form {
+			display: inline-block;
+			padding-bottom: 4px;
+		}
+		.valid {
+			border-bottom: 4px solid green;
+		}
+		.invalid {
+			border-bottom: 4px solid red;
+		}
+	</style>
 </head>
 <body>
 	<form>
 		<input name="title" type="text" placeholder="Course title">
 		<input name="price" type="number" placeholder="Course price">
 		<button type="submit">Save</button>
+		<br>
+		<div class="validation-message"></div>
 	</form>
 </body>
 </html>
