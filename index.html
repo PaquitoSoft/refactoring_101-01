@@ -14,6 +14,10 @@
 			display: inline-block;
 			padding-bottom: 4px;
 		}
+		input, button {
+			display: block;
+			margin: 6px;
+		}
 		.valid {
 			border-bottom: 4px solid green;
 		}
@@ -26,8 +30,8 @@
 	<form>
 		<input name="title" type="text" placeholder="Course title">
 		<input name="price" type="number" placeholder="Course price">
+		<input name="duration" type="number" placeholder="Course duration">
 		<button type="submit">Save</button>
-		<br>
 		<div class="validation-message"></div>
 	</form>
 </body>

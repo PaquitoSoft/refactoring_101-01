@@ -1,4 +1,4 @@
-import { validate, Required, PositiveNumber } from './validator/validator.js';
+import { validate, Required, PositiveNumber, RangedNumber } from './validator/validator.js';
 
 class Course {
 	@Required
@@ -7,9 +7,13 @@ class Course {
 	@PositiveNumber
 	price: number;
 
-	constructor(title: string, price: number) {
+	@RangedNumber(1, 6)
+	duration: number; // in months
+
+	constructor(title: string, price: number, duration: number) {
 		this.title = title;
 		this.price = price;
+		this.duration = duration;
 	}
 }
 
@@ -29,8 +33,9 @@ $form.addEventListener('submit', event => {
 	event.preventDefault();
 	const $title = <HTMLInputElement> document.querySelector('[name="title"]');
 	const $price = <HTMLInputElement> document.querySelector('[name="price"]');
+	const $duration = <HTMLInputElement> document.querySelector('[name="duration"]');
 
-	const newCourse = new Course($title.value, +$price.value);
+	const newCourse = new Course($title.value, +$price.value, +$duration.value);
 
 	showValidationHint(validate(newCourse));
 });
