@@ -18,8 +18,8 @@ type PropertyValidation = {
 /*
 	{
 		"Course": {
-			"title": ["required"],
-			"price": ["positive"]
+			"title": { "validationCode": "required" },
+			"price": { "validationCode": "ranged-number", "context": { "min": 1, "max": 6 }}
 		}
 	}
 */
@@ -29,55 +29,49 @@ interface ValidatorConfig {
 	}
 }
 
-const validatorsRegistry: ValidatorConfig = {};
+/*
+	{
+		"required": (value) => !! value,
+		"ranged-number": (value, context) => context.min <= value && value <= context.max
+	}
+*/
+interface ValidationsRegistry {
+	[validationCode: string]: Function
+}
 
-function registerValidator(className: string, propName: string, validationCode: string, validationContext?: object) {
-	const validators = validatorsRegistry[className]?.[propName] || [];
 
-	validatorsRegistry[className] = {
-		...validatorsRegistry[className],
+const propertiesValidationsRegistry: ValidatorConfig = {};
+const validationsRegistry: ValidationsRegistry = {};
+
+export function registerPropertyValidation(className: string, propName: string, validationCode: string, validationContext?: object) {
+	const validators = propertiesValidationsRegistry[className]?.[propName] || [];
+
+	propertiesValidationsRegistry[className] = {
+		...propertiesValidationsRegistry[className],
 		[propName]: [...validators, { validationCode, context: validationContext }]
 	};
 }
 
-export function Required(klass: any, propName: string) {
-	registerValidator(klass.constructor.name, propName, 'required');
-}
-
-export function PositiveNumber(klass: any, propName: string) {
-	registerValidator(klass.constructor.name, propName, 'positive');
-}
-
-export function RangedNumber(minimum: number, maximum: number) {
-	return function (klass: any, propName: string) {
-		registerValidator(klass.constructor.name, propName, 'ranged-number', {
-			min: minimum,
-			max: maximum
-		});
-	};
+export function registerValidationType(validationCode: string, validator: Function) {
+	validationsRegistry[validationCode] = validator;
 }
 
 export function validate(obj: any): boolean {
-	const validationConfig = validatorsRegistry[obj.constructor.name];
-	let isValid = true;
-
+	const validationConfig = propertiesValidationsRegistry[obj.constructor.name];
+	
 	if (!validationConfig) return true;
 
 	for (const prop in validationConfig) {
 		for (const propValidation of validationConfig[prop]) {
-			switch(propValidation.validationCode) {
-				case 'required':
-					isValid = isValid && !!obj[prop];
-					break;
-				case 'positive':
-					isValid = isValid && obj[prop] > 0;
-					break;
-				case 'ranged-number':
-					isValid = isValid && propValidation.context.min <= obj[prop] && propValidation.context.max >= obj[prop];
-					break;
+			const validator = validationsRegistry[propValidation.validationCode];
+
+			if (!validator) throw new Error(`No validator function registerd for code "${propValidation.validationCode}"`);
+
+			if (!validator(obj[prop], propValidation.context)) {
+				return false;
 			}
 		}
 	}
 
-	return isValid;
+	return true;
 }

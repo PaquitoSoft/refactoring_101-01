@@ -1,4 +1,5 @@
-import { validate, Required, PositiveNumber, RangedNumber } from './validator/validator.js';
+import { validate } from './validator/validator.js';
+import { Required, PositiveNumber, RangedNumber } from './validator/validations.js';
 
 class Course {
 	@Required
