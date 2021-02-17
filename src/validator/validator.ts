@@ -23,7 +23,7 @@ type PropertyValidation = {
 		}
 	}
 */
-interface ValidatorConfig {
+type ValidatorConfig = {
 	[className: string]: {
 		[propName: string]: PropertyValidation[]
 	}
@@ -31,14 +31,35 @@ interface ValidatorConfig {
 
 /*
 	{
-		"required": (value) => !! value,
-		"ranged-number": (value, context) => context.min <= value && value <= context.max
+		validator: (value: any) => !!value,
+		errorMessage: 'Value is required'
 	}
 */
-interface ValidationsRegistry {
-	[validationCode: string]: Function
+type ValidationConfig = {
+	validator: Function;
+	errorMessage: string;
+};
+
+/*
+	{
+		required: (value) => !! value,
+		ranged-number: (value, context) => context.min <= value && value <= context.max
+	}
+*/
+type ValidationsRegistry = {
+	[validationCode: string]: ValidationConfig
 }
 
+/*
+	{
+		isValid: false,
+		errorMessage: 'Value is required'
+	}
+*/
+export type ValidationResult = {
+	isValid: boolean;
+	errorMessages: string[];
+}
 
 const propertiesValidationsRegistry: ValidatorConfig = {};
 const validationsRegistry: ValidationsRegistry = {};
@@ -52,26 +73,28 @@ export function registerPropertyValidation(className: string, propName: string, 
 	};
 }
 
-export function registerValidationType(validationCode: string, validator: Function) {
-	validationsRegistry[validationCode] = validator;
+export function registerValidationType(validationCode: string, validationConfig: ValidationConfig) {
+	validationsRegistry[validationCode] = validationConfig;
 }
 
-export function validate(obj: any): boolean {
-	const validationConfig = propertiesValidationsRegistry[obj.constructor.name];
+export function validate(obj: any): ValidationResult {
+	const classValidationConfig = propertiesValidationsRegistry[obj.constructor.name];
+	const result: ValidationResult = { isValid: true, errorMessages: [] };
 	
-	if (!validationConfig) return true;
+	if (!classValidationConfig) return result;
 
-	for (const prop in validationConfig) {
-		for (const propValidation of validationConfig[prop]) {
-			const validator = validationsRegistry[propValidation.validationCode];
+	for (const prop in classValidationConfig) {
+		for (const propValidation of classValidationConfig[prop]) {
+			const validation = validationsRegistry[propValidation.validationCode];
 
-			if (!validator) throw new Error(`No validator function registerd for code "${propValidation.validationCode}"`);
+			if (!validation) throw new Error(`No validation registerd for code "${propValidation.validationCode}"`);
 
-			if (!validator(obj[prop], propValidation.context)) {
-				return false;
+			if (!validation.validator(obj[prop], propValidation.context)) {
+				result.isValid = false;
+				result.errorMessages.push(`"${prop}" property is not valid: ${validation.errorMessage}`);
 			}
 		}
 	}
 
-	return true;
+	return result;
 }

@@ -1,4 +1,4 @@
-import { validate } from './validator/validator.js';
+import { validate, ValidationResult } from './validator/validator.js';
 import { Required, PositiveNumber, RangedNumber } from './validator/validations.js';
 
 class Course {
@@ -18,15 +18,19 @@ class Course {
 	}
 }
 
-const $form = <HTMLFormElement> document.querySelector('form');
+const $form = document.querySelector('form')!;
 
-function showValidationHint(isValid: boolean) {
-	if (isValid) {
-		$form.classList.remove('invalid');
-		$form.classList.add('valid');
+function showValidationHint(validationResult: ValidationResult) {
+	const $validationMessage = <HTMLElement> $form.querySelector('.validation-message');
+	$validationMessage.style.display = 'block';
+	if (validationResult.isValid) {
+		$validationMessage.classList.add('valid');
+		$validationMessage.classList.remove('invalid');
+		$validationMessage.innerHTML = '<span>Data is valid</span>';
 	} else {
-		$form.classList.remove('valid');
-		$form.classList.add('invalid');
+		$validationMessage.classList.add('invalid');
+		$validationMessage.classList.remove('valid');
+		$validationMessage.innerHTML = `<ul>${validationResult.errorMessages.map(msg => `<li>${msg}</li>`).join('')}</ul>`;
 	}
 }
 
